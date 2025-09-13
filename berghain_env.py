@@ -100,12 +100,20 @@ class BerghainEnv:
             self.next_person["B"],
         )
         all_constraints_met = all(v <= 0 for v in self.remaining_rq_counts.values())
+        info = {}
+
         if not done:
             reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
         else:
-            # reward is negative sum of all unmet constraints
-            reward = -sum(max(0, self.remaining_rq_counts[a]) for a in self.attributes)
+            # reward is negative sum of all unmet constraints times 1000
+            info = {"success": all_constraints_met}
+            reward = (
+                -sum(max(0, self.remaining_rq_counts[a]) for a in self.attributes)
+                * 1000
+            )
+            # reward is + 1000 if all constraints are met
+            if all_constraints_met:
+                reward += 1000
 
         terminated = False
-        info = {}
         return state, reward, done, terminated, info

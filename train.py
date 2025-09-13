@@ -200,10 +200,7 @@ def optimize_model():
     optimizer.step()
 
 
-if torch.cuda.is_available() or torch.backends.mps.is_available():
-    num_episodes = 600
-else:
-    num_episodes = 50
+num_episodes = 100
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
@@ -212,7 +209,7 @@ for i_episode in range(num_episodes):
     state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     for t in count():
         action = select_action(state)
-        observation, reward, terminated, truncated, _ = env.step(action.item())
+        observation, reward, terminated, truncated, info = env.step(action.item())
         total_reward += reward
         reward = torch.tensor([reward], device=device)
         done = terminated or truncated
@@ -247,7 +244,12 @@ for i_episode in range(num_episodes):
             episode_durations.append(t + 1)
             # plot_durations()
             wandb.log(
-                {"episode": i_episode, "duration": t + 1, "total_reward": total_reward}
+                {
+                    "episode": i_episode,
+                    "duration": t + 1,
+                    "total_reward": total_reward,
+                    "success": int(info["success"]),
+                }
             )
             print(f"Episode {i_episode:03}\tDuration {t + 1}\t{total_reward=}")
             break
