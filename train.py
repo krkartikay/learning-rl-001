@@ -89,10 +89,10 @@ class DQN(nn.Module):
 # LR is the learning rate of the ``AdamW`` optimizer
 
 BATCH_SIZE = 128
-GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.01
-EPS_DECAY = 2500
+GAMMA = 0.999
+EPS_START = 0.99
+EPS_END = 0.001
+EPS_DECAY = 10000
 TAU = 0.005
 LR = 3e-4
 

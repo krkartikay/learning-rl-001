@@ -85,7 +85,7 @@ class BerghainEnv:
             self.remaining_rejects -= 1
 
         # Check if episode is done
-        done = self.remaining_accepts == 0
+        done = self.remaining_accepts == 0 or self.remaining_rejects == 0
 
         # Get next person
         self.next_person = self.random_person()
