@@ -90,9 +90,9 @@ class DQN(nn.Module):
 
 BATCH_SIZE = 128
 GAMMA = 0.999
-EPS_START = 0.99
-EPS_END = 0.001
-EPS_DECAY = 10000
+EPS_START = 0.90
+EPS_END = 0.01
+EPS_DECAY = 2500
 TAU = 0.005
 LR = 3e-4
 
@@ -200,7 +200,7 @@ def optimize_model():
     optimizer.step()
 
 
-num_episodes = 100
+num_episodes = 500
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
@@ -255,6 +255,3 @@ for i_episode in range(num_episodes):
             break
 
 print("Complete")
-plot_durations(show_result=True)
-plt.ioff()
-plt.show()
