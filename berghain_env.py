@@ -103,14 +103,12 @@ class BerghainEnv:
         info = {}
 
         if not done:
-            reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
+            # reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
+            reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
         else:
             # reward is negative sum of all unmet constraints times 1000
             info = {"success": all_constraints_met}
-            reward = (
-                -sum(max(0, self.remaining_rq_counts[a]) for a in self.attributes)
-                * 1000
-            )
+            reward = -sum(max(0, self.remaining_rq_counts[a]) for a in self.attributes)
             # reward is + 1000 if all constraints are met
             if all_constraints_met:
                 reward += 1000

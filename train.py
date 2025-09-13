@@ -95,6 +95,7 @@ EPS_END = 0.01
 EPS_DECAY = 2500
 TAU = 0.005
 LR = 3e-4
+N_OPTIMIZATION_STEPS = 1
 
 
 # Get number of actions from gym action space
@@ -228,7 +229,9 @@ for i_episode in range(num_episodes):
         state = next_state
 
         # Perform one step of the optimization (on the policy network)
-        optimize_model()
+        # What if we have N steps here?
+        for i in range(N_OPTIMIZATION_STEPS):
+            optimize_model()
 
         # Soft update of the target network's weights
         # θ′ ← τ θ + (1 −τ )θ′
