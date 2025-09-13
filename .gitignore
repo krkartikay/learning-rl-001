@@ -1,0 +1,7 @@
+__pycache__
+.vscode/
+*.py[oc]
+*.log
+tmp/
+*.csv
+wandb/

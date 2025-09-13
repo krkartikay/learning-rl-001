@@ -11,6 +11,10 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+import wandb
+
+run = wandb.init(project="cartpole-dqn")
+
 env = gym.make("CartPole-v1")
 
 # set up matplotlib
@@ -205,6 +209,19 @@ def optimize_model():
     criterion = nn.SmoothL1Loss()
     loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
+    criterion2 = nn.MSELoss()
+    loss2 = criterion2(state_action_values, expected_state_action_values.unsqueeze(1))
+
+    run.log(
+        {
+            "mean_state_action_values": state_action_values.mean().item(),
+            "mean_expected_state_action_values": expected_state_action_values.mean().item(),
+            "huber_loss": loss.item(),
+            "mean_sq_td_error": loss2.item(),
+        }
+    )
+    # print(f"loss: {loss.item():.4f}\t mse: {loss2.item():.4f}")
+
     # Optimize the model
     optimizer.zero_grad()
     loss.backward()
@@ -256,7 +273,9 @@ for i_episode in range(num_episodes):
 
         if done:
             episode_durations.append(t + 1)
-            plot_durations()
+            # plot_durations()
+            wandb.log({"episode": i_episode, "duration": t + 1})
+            print(f"Episode {i_episode:03}\tDuration {t + 1}")
             break
 
 print("Complete")
