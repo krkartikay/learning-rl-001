@@ -1,14 +1,14 @@
 import wandb
 import gymnasium as gym
 from wandb.integration.sb3 import WandbCallback
-from stable_baselines3 import PPO
+from sb3_contrib import RecurrentPPO
 from stable_baselines3.common.env_checker import check_env
 from berghain_env import BerghainEnv  # your env code
 from gymnasium.wrappers import FlattenObservation
 
 # Create env
 env = BerghainEnv()
-env = FlattenObservation(env)  # flatten tuple observation space
+env = FlattenObservation(env)
 check_env(env, warn=True)  # sanity check
 
 wandb.init(
@@ -24,14 +24,14 @@ wandb.init(
 # Wrap env for SB3
 vec_env = gym.wrappers.RecordEpisodeStatistics(env)
 
-# Define PPO model
-model = PPO(
-    "MlpPolicy",
+# Define RL model
+model = RecurrentPPO(
+    "MlpLstmPolicy",
     vec_env,
     verbose=1,
     tensorboard_log=f"runs/berghain_sb3_{wandb.run.id}",
     learning_rate=3e-4,
-    n_steps=2048,
+    n_steps=128,
     batch_size=64,
     gamma=0.99,
 )
