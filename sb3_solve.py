@@ -2,7 +2,7 @@ import os
 import wandb
 import gymnasium as gym
 from wandb.integration.sb3 import WandbCallback
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, PPO
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import CallbackList
 from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
@@ -34,10 +34,10 @@ def main():
     del _check_env
 
     wandb.init(
-        project="berghain-sb3",
+        project="berghain-sb3-ppo",
         config={
             "policy_type": "MlpPolicy",
-            "total_timesteps": 1_000_000,
+            "total_timesteps": 10_000_000,
             "net_arch": [128],
             "n_envs": 32,
         },
@@ -46,13 +46,13 @@ def main():
     )
 
     # Build SubprocVecEnv
-    n_envs = int(wandb.config.get("n_envs", 4))
+    n_envs = int(wandb.config.get("n_envs"))
     base_seed = 42
-    # vec_env = SubprocVecEnv([make_env(i, base_seed) for i in range(n_envs)])
-    vec_env = DummyVecEnv([make_env(0, base_seed)])
+    vec_env = SubprocVecEnv([make_env(i, base_seed) for i in range(n_envs)])
+    # vec_env = DummyVecEnv([make_env(0, base_seed)])
 
     # Define RL model
-    model = DQN(
+    model = PPO(
         "MlpPolicy",
         vec_env,
         verbose=2,
@@ -60,8 +60,7 @@ def main():
         learning_rate=3e-4,
         batch_size=64,
         gamma=0.99,
-        buffer_size=10_000,
-        policy_kwargs=dict(net_arch=wandb.config.get("net_arch", [256, 256])),
+        policy_kwargs=dict(net_arch=wandb.config.get("net_arch")),
     )
 
     # Train
