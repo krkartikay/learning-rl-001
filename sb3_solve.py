@@ -1,7 +1,7 @@
 import wandb
 import gymnasium as gym
 from wandb.integration.sb3 import WandbCallback
-from sb3_contrib import RecurrentPPO
+from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
 from berghain_env import BerghainEnv  # your env code
 from gymnasium.wrappers import FlattenObservation
@@ -25,8 +25,8 @@ wandb.init(
 vec_env = gym.wrappers.RecordEpisodeStatistics(env)
 
 # Define RL model
-model = RecurrentPPO(
-    "MlpLstmPolicy",
+model = DQN(
+    "MlpPolicy",
     vec_env,
     verbose=1,
     tensorboard_log=f"runs/berghain_sb3_{wandb.run.id}",
@@ -34,15 +34,16 @@ model = RecurrentPPO(
     n_steps=128,
     batch_size=64,
     gamma=0.99,
+    policy_kwargs=dict(net_arch=[16]),
 )
 
 # Train
 model.learn(
     total_timesteps=wandb.config.total_timesteps,
     callback=WandbCallback(
-        gradient_save_freq=1000,
+        gradient_save_freq=100,
         model_save_path=f"models/{wandb.run.id}",
-        model_save_freq=5000,
+        model_save_freq=100,
         verbose=2,
     ),
 )

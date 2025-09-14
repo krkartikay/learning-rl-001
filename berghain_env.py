@@ -48,7 +48,7 @@ class BerghainEnv(gym.Env):
         self.observation_space = spaces.Tuple(
             (
                 spaces.Discrete(1001),
-                spaces.Discrete(20001),
+                # spaces.Discrete(20001),
                 spaces.Discrete(1001),
                 spaces.Discrete(1001),
                 spaces.Discrete(2),
@@ -67,7 +67,7 @@ class BerghainEnv(gym.Env):
         # (accepts, rejects, rq_A, rq_B, next_A, next_B)
         return (
             int(self.remaining_accepts),
-            int(self.remaining_rejects),
+            # int(self.remaining_rejects),
             int(self.remaining_rq_counts["A"]),
             int(self.remaining_rq_counts["B"]),
             int(self.next_person["A"]),
@@ -134,6 +134,8 @@ class BerghainEnv(gym.Env):
         # truncated for hitting an external limit (reject cap).
         terminated = self.remaining_accepts == 0
         truncated = self.remaining_rejects == 0
+        if not self.feasible(self._make_state()):
+            truncated = True  # no point continuing if infeasible
         done = terminated or truncated
 
         # Prepare next person (even if done; some agents inspect next obs)
@@ -149,7 +151,8 @@ class BerghainEnv(gym.Env):
             reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
         else:
             info = {"success": all_constraints_met}
-            reward = 0 if all_constraints_met else -INF
+            # reward = 0 if all_constraints_met else -INF
+            reward = 0
 
         # update reward with potential-based shaping (if any)
         reward += self.reward_potential(state) - self.reward_potential(prev_state)
@@ -160,7 +163,7 @@ class BerghainEnv(gym.Env):
 
     def feasible(self, state) -> bool:
         # Check if we can even reach success from this state
-        accepts, rejects, rq_A, rq_B, _, _ = state
+        accepts, rq_A, rq_B, _, _ = state
         if max(rq_A, rq_B) > accepts:
             return False
         return True
@@ -168,10 +171,9 @@ class BerghainEnv(gym.Env):
     def reward_potential(self, state):
         # Custom reward potential function for reward shaping (optional)
         # state is a tuple as defined in _make_state
-        _, _, rq_A, rq_B, _, _ = state
+        _, rq_A, rq_B, _, _ = state
         remaining_counts = rq_A + rq_B
-        feasibility_penalty = -INF if not self.feasible(state) else 0
-        return -remaining_counts + feasibility_penalty
+        return -remaining_counts
 
     # Optional (no-op) render/close to satisfy wrappers if needed
     def render(self):
