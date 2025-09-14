@@ -5,7 +5,7 @@ from wandb.integration.sb3 import WandbCallback
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.callbacks import CallbackList
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from stable_baselines3.common.vec_env import SubprocVecEnv, DummyVecEnv
 from stable_baselines3.common.monitor import Monitor
 from berghain_env import BerghainEnv  # your env code
 from gymnasium.wrappers import FlattenObservation
@@ -29,7 +29,7 @@ def make_env(rank: int, seed: int | None = None):
 
 def main():
     # Create and check a single env instance (sanity check only)
-    _check_env = FlattenObservation(BerghainEnv())
+    _check_env = BerghainEnv()
     check_env(_check_env, warn=True)
     del _check_env
 
@@ -39,7 +39,7 @@ def main():
             "policy_type": "MlpPolicy",
             "total_timesteps": 1_000_000,
             "net_arch": [128],
-            "n_envs": 4,
+            "n_envs": 32,
         },
         sync_tensorboard=True,
         save_code=True,
@@ -48,13 +48,14 @@ def main():
     # Build SubprocVecEnv
     n_envs = int(wandb.config.get("n_envs", 4))
     base_seed = 42
-    vec_env = SubprocVecEnv([make_env(i, base_seed) for i in range(n_envs)])
+    # vec_env = SubprocVecEnv([make_env(i, base_seed) for i in range(n_envs)])
+    vec_env = DummyVecEnv([make_env(0, base_seed)])
 
     # Define RL model
     model = DQN(
         "MlpPolicy",
         vec_env,
-        verbose=1,
+        verbose=2,
         tensorboard_log=f"runs/berghain_sb3_{wandb.run.id}",
         learning_rate=3e-4,
         batch_size=64,
@@ -77,9 +78,7 @@ def main():
                     verbose=2,
                 ),
                 # Custom callback to record agent actions
-                ActionLoggingCallback(
-                    log_table=True, log_hist=True, name_prefix="actions"
-                ),
+                ActionLoggingCallback(wandb_run=wandb.run, name_prefix="actions"),
             ]
         ),
     )
@@ -92,7 +91,7 @@ def main():
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = eval_env.step(action)
         done = terminated or truncated
-        print(f"Step reward={reward}, success={info.get('success', False)}")
+        print(f"Step {obs=} {action=} {reward=}, success={info.get('success', False)}")
 
 
 if __name__ == "__main__":

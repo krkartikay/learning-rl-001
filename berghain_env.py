@@ -45,15 +45,10 @@ class BerghainEnv(gym.Env):
         # remaining_rq_counts[A], [B]: 0..600
         # next_person[A], [B]: 0/1
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Tuple(
-            (
-                spaces.Discrete(1001),
-                # spaces.Discrete(20001),
-                spaces.Discrete(1001),
-                spaces.Discrete(1001),
-                spaces.Discrete(2),
-                spaces.Discrete(2),
-            )
+        self.observation_space = spaces.Box(
+            low=np.array([0, 0, 0, 0, 0], dtype=np.int32),
+            high=np.array([1000, 1000, 1000, 1, 1], dtype=np.int32),
+            dtype=np.int32,
         )
 
         self.np_random = np.random.default_rng()
@@ -65,13 +60,15 @@ class BerghainEnv(gym.Env):
     def _make_state(self):
         # Return state as a tuple of integers
         # (accepts, rejects, rq_A, rq_B, next_A, next_B)
-        return (
-            int(self.remaining_accepts),
-            # int(self.remaining_rejects),
-            int(self.remaining_rq_counts["A"]),
-            int(self.remaining_rq_counts["B"]),
-            int(self.next_person["A"]),
-            int(self.next_person["B"]),
+        return np.array(
+            [
+                int(self.remaining_accepts),
+                int(self.remaining_rq_counts["A"]),
+                int(self.remaining_rq_counts["B"]),
+                int(self.next_person["A"]),
+                int(self.next_person["B"]),
+            ],
+            dtype=np.int32,
         )
 
     def reset(self, *, seed=None, options=None):
