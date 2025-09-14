@@ -115,11 +115,15 @@ class BerghainEnv(gym.Env):
         # Validate action via space (raises if invalid in debug/tools)
         assert self.action_space.contains(action), "Invalid action"
 
+        prev_state = self._make_state()
+
         if action == 1:  # accept
             self.remaining_accepts -= 1
             for a in self.attributes:
                 if self.next_person[a]:
-                    self.remaining_rq_counts[a] -= 1
+                    self.remaining_rq_counts[a] = max(
+                        0, self.remaining_rq_counts[a] - 1
+                    )
         else:  # reject
             self.remaining_rejects -= 1
 
@@ -142,12 +146,19 @@ class BerghainEnv(gym.Env):
             reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
         else:
             info = {"success": all_constraints_met}
-            reward = -sum(max(0, self.remaining_rq_counts[a]) for a in self.attributes)
-            if all_constraints_met:
-                reward += 1000
+            reward = 0 if all_constraints_met else -1e5
+
+        # update reward with potential-based shaping (if any)
+        reward += self.reward_potential(state) - self.reward_potential(prev_state)
 
         # Gymnasium step: (obs, reward, terminated, truncated, info)
         return state, reward, terminated, truncated, info
+
+    def reward_potential(self, state):
+        # Custom reward potential function for reward shaping (optional)
+        # state is a tuple as defined in _make_state
+        _, _, rq_A, rq_B, _, _ = state
+        return -(rq_A + rq_B)  # negative of remaining required counts
 
     # Optional (no-op) render/close to satisfy wrappers if needed
     def render(self):
