@@ -147,8 +147,8 @@ class BerghainEnv(gym.Env):
 
         # Keep your reward function unchanged
         if not done:
-            # reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
-            reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
+            reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
+            # reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
         else:
             info = {"success": all_constraints_met}
             # reward = 0 if all_constraints_met else -INF
