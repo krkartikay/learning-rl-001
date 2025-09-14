@@ -37,9 +37,9 @@ def main():
         project="berghain-sb3-ppo",
         config={
             "policy_type": "MlpPolicy",
-            "total_timesteps": 10_000_000,
+            "total_timesteps": 1_000_000,
             "net_arch": [128],
-            "n_envs": 32,
+            "n_envs": 16,
         },
         sync_tensorboard=True,
         save_code=True,

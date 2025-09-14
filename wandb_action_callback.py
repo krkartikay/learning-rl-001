@@ -40,6 +40,18 @@ class ActionLoggingCallback(BaseCallback):
 
     def on_rollout_end(self):
         super().on_rollout_end()
+
+        dones = self.locals.get("dones")
+        infos = self.locals.get("infos")
+        for i, done in enumerate(dones):
+            if done:
+                success = infos[i]["success"]
+                self.wandb_run.log(
+                    {
+                        f"{self.name_prefix}/episode_success": int(success),
+                    }
+                )
+
         if self.total_actions > 0:
             accept_ratio = self.accept_actions / self.total_actions
         else:
