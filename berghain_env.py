@@ -23,6 +23,9 @@ import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
 
+REWARD_SCALE = 0.001
+INF = 20_000
+
 
 class BerghainEnv(gym.Env):
     metadata = {"render_modes": []}
@@ -146,19 +149,29 @@ class BerghainEnv(gym.Env):
             reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
         else:
             info = {"success": all_constraints_met}
-            reward = 0 if all_constraints_met else -1e5
+            reward = 0 if all_constraints_met else -INF
 
         # update reward with potential-based shaping (if any)
         reward += self.reward_potential(state) - self.reward_potential(prev_state)
+        reward *= REWARD_SCALE  # scale down reward
 
         # Gymnasium step: (obs, reward, terminated, truncated, info)
         return state, reward, terminated, truncated, info
+
+    def feasible(self, state) -> bool:
+        # Check if we can even reach success from this state
+        accepts, rejects, rq_A, rq_B, _, _ = state
+        if max(rq_A, rq_B) > accepts:
+            return False
+        return True
 
     def reward_potential(self, state):
         # Custom reward potential function for reward shaping (optional)
         # state is a tuple as defined in _make_state
         _, _, rq_A, rq_B, _, _ = state
-        return -(rq_A + rq_B)  # negative of remaining required counts
+        remaining_counts = rq_A + rq_B
+        feasibility_penalty = -INF if not self.feasible(state) else 0
+        return -remaining_counts + feasibility_penalty
 
     # Optional (no-op) render/close to satisfy wrappers if needed
     def render(self):
