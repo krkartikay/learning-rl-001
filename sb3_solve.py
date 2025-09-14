@@ -34,10 +34,10 @@ def main():
     del _check_env
 
     wandb.init(
-        project="berghain-sb3-ppo",
+        project="berghain-sb3-dqn",
         config={
             "policy_type": "MlpPolicy",
-            "total_timesteps": 1_000_000,
+            "total_timesteps": 10_000_000,
             "net_arch": [128],
             "n_envs": 16,
         },
@@ -52,7 +52,7 @@ def main():
     # vec_env = DummyVecEnv([make_env(0, base_seed)])
 
     # Define RL model
-    model = PPO(
+    model = DQN(
         "MlpPolicy",
         vec_env,
         verbose=2,
@@ -60,6 +60,7 @@ def main():
         learning_rate=3e-4,
         batch_size=64,
         gamma=0.99,
+        buffer_size=500_000,
         policy_kwargs=dict(net_arch=wandb.config.get("net_arch")),
     )
 
