@@ -143,17 +143,15 @@ class BerghainEnv(gym.Env):
         info = {}
 
         # Keep your reward function unchanged
-        if not done:
-            reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
-            # reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
-        else:
-            info = {"success": all_constraints_met}
-            # reward = 0 if all_constraints_met else -INF
-            reward = 0
-
-        # update reward with potential-based shaping (if any)
-        reward += self.reward_potential(state) - self.reward_potential(prev_state)
-        reward *= REWARD_SCALE  # scale down reward
+        # if not done:
+        #     reward = 0 if 
+        #     # reward = -1 if (action == 0) else 0  # Reject = -1, Accept = 0
+        #     # reward = 0  # For now let's just try to see if it can learn to meet all constraints or not
+        # else:
+        #     info = {"success": all_constraints_met}
+        #     # reward = 0 if all_constraints_met else -INF
+        #     # reward is number of constraints met and reduced in this step
+        reward = prev_state[2] + prev_state[3] - state[2] - state[3]
 
         # Gymnasium step: (obs, reward, terminated, truncated, info)
         return state, reward, terminated, truncated, info
@@ -164,13 +162,6 @@ class BerghainEnv(gym.Env):
         if max(rq_A, rq_B) > accepts:
             return False
         return True
-
-    def reward_potential(self, state):
-        # Custom reward potential function for reward shaping (optional)
-        # state is a tuple as defined in _make_state
-        _, rq_A, rq_B, _, _ = state
-        remaining_counts = rq_A + rq_B
-        return -remaining_counts
 
     # Optional (no-op) render/close to satisfy wrappers if needed
     def render(self):
