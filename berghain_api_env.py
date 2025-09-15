@@ -81,7 +81,7 @@ class BerghainAPIEnv(gym.Env):
         resp = r.json()
 
         # update counters
-        if accept:
+        if accept == "true":
             self.remaining_accepts -= 1
             for attr in self.attributes:
                 if self.next_person.get(attr, False):
