@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 
 env = BerghainEnv()
 
-WEIGHTS = [[0, 0, 0, 0, 0],   # reject
-           [0, 0, 0, 0, 0]]   # accept
+WEIGHTS = [[-.01, .01, .01, 0, 0],   # reject
+              [0, 0, 0, 1, 1]]   # accept
 BIAS = [0, 0]
 
 NUM_EPISODES = 100

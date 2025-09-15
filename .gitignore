@@ -7,3 +7,4 @@ tmp/
 wandb/
 runs/
 models/
+*.png
