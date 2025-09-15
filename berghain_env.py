@@ -32,12 +32,16 @@ class BerghainEnv(gym.Env):
 
     def __init__(self):
         super().__init__()
-        self.attributes = ["A", "B"]
+        self.attributes = ["A", "B", "C"]
         self.prob_dist = {
-            "ab": 0.45,
-            "Ab": 0.20,
-            "aB": 0.20,
-            "AB": 0.15,
+            "abc": 0.20,
+            "abC": 0.10,
+            "aBc": 0.10,
+            "aBC": 0.10,
+            "Abc": 0.15,
+            "AbC": 0.10,
+            "ABc": 0.15,
+            "ABC": 0.10,
         }
 
         # Gymnasium spaces (keep state layout unchanged: 6 scalars)
@@ -46,8 +50,8 @@ class BerghainEnv(gym.Env):
         # next_person[A], [B]: 0/1
         self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
-            low=np.array([0, 0, 0, 0, 0], dtype=np.int32),
-            high=np.array([1000, 1000, 1000, 1, 1], dtype=np.int32),
+            low=np.array([0, 0, 0, 0, 0, 0, 0], dtype=np.int32),
+            high=np.array([1000, 1000, 1000, 1000, 1, 1, 1], dtype=np.int32),
             dtype=np.int32,
         )
 
@@ -65,8 +69,10 @@ class BerghainEnv(gym.Env):
                 int(self.remaining_accepts),
                 int(self.remaining_rq_counts["A"]),
                 int(self.remaining_rq_counts["B"]),
+                int(self.remaining_rq_counts["C"]),
                 int(self.next_person["A"]),
                 int(self.next_person["B"]),
+                int(self.next_person["C"]),
             ],
             dtype=np.int32,
         )
@@ -77,7 +83,7 @@ class BerghainEnv(gym.Env):
 
         self.remaining_accepts = 1000
         self.remaining_rejects = 20000
-        self.remaining_rq_counts = {"A": 600, "B": 600}
+        self.remaining_rq_counts = {"A": 600, "B": 600, "C": 600}
 
         # compute marginal frequencies from the joint distribution
         rel_fqs = {
@@ -151,15 +157,17 @@ class BerghainEnv(gym.Env):
         #     info = {"success": all_constraints_met}
         #     # reward = 0 if all_constraints_met else -INF
         #     # reward is number of constraints met and reduced in this step
-        reward = prev_state[2] + prev_state[3] - state[2] - state[3]
+        prev_accepts, prev_rq_A, prev_rq_B, prev_rq_C, _, _, _ = prev_state
+        accepts, rq_A, rq_B, rq_C, next_A, next_B, next_C = state
+        reward = prev_rq_A + prev_rq_B + prev_rq_C - (rq_A + rq_B + rq_C)
 
         # Gymnasium step: (obs, reward, terminated, truncated, info)
         return state, reward, terminated, truncated, info
 
     def feasible(self, state) -> bool:
         # Check if we can even reach success from this state
-        accepts, rq_A, rq_B, _, _ = state
-        if max(rq_A, rq_B) > accepts:
+        accepts, rq_A, rq_B, rq_C, _, _, _ = state
+        if max(rq_A, rq_B, rq_C) > accepts:
             return False
         return True
 

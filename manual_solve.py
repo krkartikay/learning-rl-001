@@ -8,32 +8,38 @@ WEIGHTS = [0.5, 0.3, 0.2, 0.1, 0.1]
 
 def choose_action(state):
     remaining_accepts = state[0]
-    rq_A = state[1]
-    rq_B = state[2]
-    next_A = state[3]
-    next_B = state[4]
-    rq_overlap = rq_A + rq_B - remaining_accepts
-    if(next_A and next_B):
+    n = (len(state) - 1) // 2
+    rq = state[1:n+1]
+    nexts = state[n+1:2*n+1]
+
+    rq_total = sum(rq)
+    rq_overlap = rq_total - remaining_accepts
+
+    # If all nexts are True, accept
+    if all(nexts):
         return 1
-    elif(next_A):
-        if(rq_A > 0):
-            return 1
-        elif(rq_B > 0 and remaining_accepts <= rq_B):
+
+    # If remaining_accepts is equal to any rq and that next is False, reject
+    for i in range(n):
+        if rq[i-1] == remaining_accepts and not nexts[i-1]:
             return 0
-        else:
+    
+    # If any next is True and its rq > 0, accept
+    for i in range(n):
+        if nexts[i-1]:
+            if rq[i-1] > 0:
+                return 1
+            # If another rq > 0 and remaining_accepts <= that rq, reject
+            for j in range(n):
+                if j != i and rq[j-1] > 0 and remaining_accepts <= rq[j-1]:
+                    return 0
             return 1
-    elif(next_B):
-        if(rq_B > 0):
-            return 1
-        elif(rq_A > 0 and remaining_accepts <= rq_A):
-            return 0
-        else:
-            return 1
+
+    # If no nexts are True
+    if remaining_accepts > rq_total:
+        return 1
     else:
-        if(remaining_accepts > rq_A + rq_B):
-            return 1
-        else:
-            return 0
+        return 0
 
 def run_eps():
     state, info = env.reset()
