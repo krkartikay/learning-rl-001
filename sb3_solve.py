@@ -38,7 +38,7 @@ def main():
         config={
             "policy_type": "MlpPolicy",
             "total_timesteps": 10_000_000,
-            "net_arch": [128],
+            "net_arch": [],
             "n_envs": 16,
         },
         sync_tensorboard=True,

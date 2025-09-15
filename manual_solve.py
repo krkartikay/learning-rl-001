@@ -7,7 +7,7 @@ env = BerghainEnv()
 
 WEIGHTS = [[0, 0, 0, 0, 0],   # accept
            [0, 0, 0, 0, 0]]   # reject
-BIAS = [0, 0]
+BIAS = [0, 5]
 
 def softmax(logits):
     # subtract max for numerical stability
@@ -17,8 +17,7 @@ def softmax(logits):
 def choose_action(state):
     # one neuron that predicts 0 or 1
     # logits = relu(weights * state + bias)
-    state_np = np.array(state)
-    logits = np.dot(WEIGHTS, state_np) + BIAS
+    logits = np.dot(WEIGHTS, state) + BIAS
     logits = np.maximum(0, logits)  # relu
     probs = softmax(logits)
     choice = random.choices([0, 1], weights=probs)
