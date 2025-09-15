@@ -1,17 +1,15 @@
 from berghain_env import BerghainEnv
+from berghain_api_env import BerghainAPIEnv
 import numpy as np
 import random 
-env = BerghainEnv()
 
-WEIGHTS = [0.5, 0.3, 0.2, 0.1, 0.1]
+# env = BerghainEnv()
+env = BerghainAPIEnv(base_url="https://berghain.challenges.listenlabs.ai/", scenario=1, player_id="ec4ae250-7815-41e1-8bf6-6cfc446dc81a")
 
 
 def choose_action(state):
-    remaining_accepts = state[0]
-    rq_A = state[1]
-    rq_B = state[2]
-    next_A = state[3]
-    next_B = state[4]
+    print(state)
+    remaining_accepts,rq_A,rq_B,next_A,next_B = state
     rq_overlap = rq_A + rq_B - remaining_accepts
     if(next_A and next_B):
         return 1
